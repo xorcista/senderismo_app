@@ -15,15 +15,22 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity4 extends AppCompatActivity {
 
     Toolbar toolbar;
 
+    private RecyclerView recyclerView;
+    private RutasAdapter rutasAdapter;
+    private List<Ruta> listaRutas;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main4);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -32,17 +39,36 @@ public class MainActivity4 extends AppCompatActivity {
         });
 
         toolbar = findViewById(R.id.mi_toolbar);
-        toolbar.setTitle("Buscar");
+        toolbar.setTitle("Buscar Rutas");
         setSupportActionBar(toolbar);
 
+        recyclerView = findViewById(R.id.recyclerView);
+
+        crearDatosDeEjemplo();
+
+        rutasAdapter = new RutasAdapter(listaRutas);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(rutasAdapter);
     }
 
+    private void crearDatosDeEjemplo() {
+        listaRutas = new ArrayList<>();
+        listaRutas.add(new Ruta("Laguna de Pucaccocha", "Media", "Trekking hacia una hermosa laguna de aguas turquesas cerca de Huánuco."));
+        listaRutas.add(new Ruta("Zona arqueológica de Kotosh", "Fácil", "Caminata corta para visitar el sitio arqueológico de las Manos Cruzadas."));
+        listaRutas.add(new Ruta("Ciclismo a Tomayquichua", "Fácil", "Ruta de ciclismo por carretera hacia el pueblo de Micaela Villegas 'La Perricholi'."));
+        listaRutas.add(new Ruta("Trekking a la Bella Durmiente", "Difícil", "Ruta exigente hacia la famosa montaña con forma de mujer dormida en Tingo María."));
+        listaRutas.add(new Ruta("Visita a la Cueva de las Lechuzas", "Fácil", "Paseo ecoturístico para observar guácharos (aves nocturnas) en su hábitat natural."));
+        listaRutas.add(new Ruta("Ruta a las Aguas Sulfurosas de Jacintillo", "Media", "Caminata para llegar a pozas naturales de aguas termales con propiedades curativas."));
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
         return true;
     }
 
+    @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
@@ -58,8 +84,8 @@ public class MainActivity4 extends AppCompatActivity {
             startActivity(i);
         }
         return super.onOptionsItemSelected(item);
-
     }
+
     public void atras1 (View view) {
         Intent i = new Intent(MainActivity4.this, MainActivity2.class);
         startActivity(i);
