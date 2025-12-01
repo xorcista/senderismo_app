@@ -19,7 +19,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
 
-    Toolbar toolbar;
+
     EditText usuario, contraseña;
     private ActivityResultLauncher<Intent> launcher;
 
