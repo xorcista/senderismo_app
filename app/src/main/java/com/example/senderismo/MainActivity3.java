@@ -6,12 +6,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -19,6 +21,8 @@ import androidx.core.view.WindowInsetsCompat;
 public class MainActivity3 extends AppCompatActivity {
 
     Toolbar toolbar;
+    TextView login;
+    String usuario;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +38,8 @@ public class MainActivity3 extends AppCompatActivity {
         toolbar = findViewById(R.id.mi_toolbar);
         toolbar.setTitle("Mi Perfil");
         setSupportActionBar(toolbar);
+
+
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
