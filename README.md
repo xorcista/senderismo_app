@@ -6,9 +6,9 @@
 
 ###
 <p align="left">
-<img src="https://dampudia.com/app_1.png" width="275" alt="app_1"  />
-<img src="https://dampudia.com/app_2.png" width="275" alt="app_2"  />
-<img src="https://dampudia.com/app_3.png" width="275" alt="app_3"  />
+<img src="https://dampudia.com/app_1.png" width="270" alt="app_1"  />
+<img src="https://dampudia.com/app_2.png" width="270" alt="app_2"  />
+<img src="https://dampudia.com/app_3.png" width="270" alt="app_3"  />
 </p>
 
 <h2 align="left">Integrantes</h2>
