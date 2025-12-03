@@ -5,16 +5,22 @@
 <p align="left">Senderismo App es una aplicación para encontrar rutas de senderismo o ciclismo, conocer distancias, dificultad y más.</p>
 
 ###
+<p align="left">
+<img src="https://dampudia.com/app_1.png" width="270" alt="app_1"  />
+<img src="https://dampudia.com/app_2.png" width="270" alt="app_2"  />
+<img src="https://dampudia.com/app_3.png" width="270" alt="app_3"  />
+</p>
 
 <h2 align="left">Integrantes</h2>
 
 ###
 
-<p align="left">*</p>
-<p align="left">*</p>
-<p align="left">*</p>
-<p align="left">*</p>
-<p align="left">*</p>
+<p align="left">- Ramirez Avalos Aldair</p>
+<p align="left">- Ampudia Alvarado Daniel</p>
+<p align="left">- Peña Ramirez Karol</p>
+<p align="left">- Ramos Martel Ronald</p>
+<p align="left">- Campos Ramos Jennifer</p>
+
 
 ###
 
