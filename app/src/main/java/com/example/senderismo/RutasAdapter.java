@@ -3,6 +3,7 @@ package com.example.senderismo;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,6 +30,7 @@ public class RutasAdapter extends RecyclerView.Adapter<RutasAdapter.RutaViewHold
         holder.nombreTextView.setText(ruta.getNombre());
         holder.dificultadTextView.setText("Dificultad: " + ruta.getDificultad());
         holder.descripcionTextView.setText(ruta.getDescripcion());
+        holder.imagenImageView.setImageResource(ruta.getImagenResId());
     }
 
     @Override
@@ -40,12 +42,14 @@ public class RutasAdapter extends RecyclerView.Adapter<RutasAdapter.RutaViewHold
         public TextView nombreTextView;
         public TextView dificultadTextView;
         public TextView descripcionTextView;
+        public ImageView imagenImageView;
 
         public RutaViewHolder(@NonNull View itemView) {
             super(itemView);
             nombreTextView = itemView.findViewById(R.id.textViewNombreRuta);
             dificultadTextView = itemView.findViewById(R.id.textViewDificultad);
             descripcionTextView = itemView.findViewById(R.id.textViewDescripcion);
+            imagenImageView = itemView.findViewById(R.id.imageViewRuta);
         }
     }
 }

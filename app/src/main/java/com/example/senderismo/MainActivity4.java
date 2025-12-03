@@ -53,12 +53,12 @@ public class MainActivity4 extends AppCompatActivity {
 
     private void crearDatosDeEjemplo() {
         listaRutas = new ArrayList<>();
-        listaRutas.add(new Ruta("Laguna de Pucaccocha", "Media", "Trekking hacia una hermosa laguna de aguas turquesas cerca de Huánuco."));
-        listaRutas.add(new Ruta("Zona arqueológica de Kotosh", "Fácil", "Caminata corta para visitar el sitio arqueológico de las Manos Cruzadas."));
-        listaRutas.add(new Ruta("Ciclismo a Tomayquichua", "Fácil", "Ruta de ciclismo por carretera hacia el pueblo de Micaela Villegas 'La Perricholi'."));
-        listaRutas.add(new Ruta("Trekking a la Bella Durmiente", "Difícil", "Ruta exigente hacia la famosa montaña con forma de mujer dormida en Tingo María."));
-        listaRutas.add(new Ruta("Visita a la Cueva de las Lechuzas", "Fácil", "Paseo ecoturístico para observar guácharos (aves nocturnas) en su hábitat natural."));
-        listaRutas.add(new Ruta("Ruta a las Aguas Sulfurosas de Jacintillo", "Media", "Caminata para llegar a pozas naturales de aguas termales con propiedades curativas."));
+        listaRutas.add(new Ruta("Laguna de Pucaccocha", "Media", "Trekking hacia una hermosa laguna de aguas turquesas cerca de Huánuco.", R.drawable.ruta));
+        listaRutas.add(new Ruta("Zona arqueológica de Kotosh", "Fácil", "Caminata corta para visitar el sitio arqueológico de las Manos Cruzadas.", R.drawable.visita));
+        listaRutas.add(new Ruta("Ciclismo a Tomayquichua", "Fácil", "Ruta de ciclismo por carretera hacia el pueblo de Micaela Villegas 'La Perricholi'.", R.drawable.ciclismo));
+        listaRutas.add(new Ruta("Trekking a la Bella Durmiente", "Difícil", "Ruta exigente hacia la famosa montaña con forma de mujer dormida en Tingo María.", R.drawable.trekking));
+        listaRutas.add(new Ruta("Visita a la Cueva de las Lechuzas", "Fácil", "Paseo ecoturístico para observar guácharos (aves nocturnas) en su hábitat natural.", R.drawable.lechuzas));
+        listaRutas.add(new Ruta("Ruta a las Aguas Sulfurosas de Jacintillo", "Media", "Caminata para llegar a pozas naturales de aguas termales con propiedades curativas.", R.drawable.aguas));
     }
 
     @Override
