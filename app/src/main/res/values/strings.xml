@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">senderismo</string>
     <string name="title_activity_maps">MapsActivity</string>
+    <string name="google_maps_key">AIzaSyD_Hvm2QeueasjtVWzi5-LBNqrtTLungIQ</string>
+    <string-array name="niveles_dificultad">
+        <item>Fácil</item>
+        <item>Media</item>
+        <item>Difícil</item>
+        <item>Experto</item>
+    </string-array>
+
 </resources>

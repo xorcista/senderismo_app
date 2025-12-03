@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "993612032150",
+    "project_id": "senderismo-001",
+    "storage_bucket": "senderismo-001.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:993612032150:android:d5ac8ae3dc065f545c3ab7",
+        "android_client_info": {
+          "package_name": "com.example.senderismo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVAkDcH5qzgyeJegwYlhYpjSbVS60kI1g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
