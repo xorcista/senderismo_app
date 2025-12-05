@@ -9,6 +9,8 @@ public interface DirectionsApiService {
     Call<DirectionsResponse> getDirections(
             @Query("origin") String origin,
             @Query("destination") String destination,
+            @Query("mode") String mode,
             @Query("key") String apiKey
     );
 }
+    

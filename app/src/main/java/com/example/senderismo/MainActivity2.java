@@ -3,17 +3,19 @@ package com.example.senderismo;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,7 +25,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -62,22 +66,24 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
 
     private Toolbar toolbar;
     private TextView tvSaludo;
+    private Button btnBuscarRuta, btnGuardarRuta;
+    private LinearLayout routeDetailsLayout;
+    private TextView tvDuracion, tvDistancia;
+    private ImageButton btnModoCaminar, btnModoBicicleta;
     private MapView mapView;
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
-    private Button btnBuscarRuta, btnGuardarRuta;
-
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
-
-    private PlacesClient placesClient;
     private LatLng origenLatLng;
     private LatLng destinoLatLng;
-    private String polylineRutaCodificada;
     private Marker markerDestino;
     private Polyline polylineRuta;
-
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private PlacesClient placesClient;
     private DirectionsApiService directionsApiService;
+    private String polylineRutaCodificada;
+    private String modoTransporte = "walking";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,10 +96,14 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
         tvSaludo = findViewById(R.id.etlogin);
         btnBuscarRuta = findViewById(R.id.btnBuscarRuta);
         btnGuardarRuta = findViewById(R.id.btnGuardarRuta);
+        routeDetailsLayout = findViewById(R.id.routeDetailsLayout);
+        tvDuracion = findViewById(R.id.tvDuracion);
+        tvDistancia = findViewById(R.id.tvDistancia);
+        btnModoCaminar = findViewById(R.id.btnModoCaminar);
+        btnModoBicicleta = findViewById(R.id.btnModoBicicleta);
 
         cargarDatosUsuario();
 
@@ -118,7 +128,7 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
             if (origenLatLng != null && destinoLatLng != null) {
                 buscarYDibujarRuta();
             } else {
-                Toast.makeText(this, "Por favor, selecciona un destino.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Por favor, selecciona un destino", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -126,9 +136,123 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
             if (destinoLatLng != null && polylineRutaCodificada != null && !polylineRutaCodificada.isEmpty()) {
                 mostrarDialogoGuardarRuta();
             } else {
-                Toast.makeText(this, "Primero debes buscar una ruta para poder guardarla.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Primero debes buscar una ruta para poder guardarla", Toast.LENGTH_LONG).show();
             }
         });
+
+        btnModoCaminar.setBackgroundColor(ContextCompat.getColor(this, R.color.selected_button_background));
+
+        btnModoCaminar.setOnClickListener(v -> {
+            modoTransporte = "walking";
+            Toast.makeText(this, "Modo Caminar seleccionado", Toast.LENGTH_SHORT).show();
+            btnModoCaminar.setBackgroundColor(ContextCompat.getColor(this, R.color.selected_button_background));
+            btnModoBicicleta.setBackgroundColor(Color.TRANSPARENT);
+        });
+
+        btnModoBicicleta.setOnClickListener(v -> {
+            modoTransporte = "bicycling";
+            Toast.makeText(this, "Modo Bicicleta seleccionado", Toast.LENGTH_SHORT).show();
+            btnModoBicicleta.setBackgroundColor(ContextCompat.getColor(this, R.color.selected_button_background));
+            btnModoCaminar.setBackgroundColor(Color.TRANSPARENT);
+        });
+    }
+
+    private void buscarYDibujarRuta() {
+        if (polylineRuta != null) polylineRuta.remove();
+
+        routeDetailsLayout.setVisibility(View.GONE);
+        btnGuardarRuta.setVisibility(View.GONE);
+
+        String originStr = origenLatLng.latitude + "," + origenLatLng.longitude;
+        String destinationStr = destinoLatLng.latitude + "," + destinoLatLng.longitude;
+        String apiKey = getString(R.string.google_maps_key);
+
+        String modoSeleccionadoTexto = modoTransporte.equals("walking") ? "a pie" : "en bicicleta";
+        Toast.makeText(this, "Mostrando ruta " + modoSeleccionadoTexto + "...", Toast.LENGTH_SHORT).show();
+
+        directionsApiService.getDirections(originStr, destinationStr, modoTransporte, apiKey).enqueue(new Callback<DirectionsResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<DirectionsResponse> call, @NonNull Response<DirectionsResponse> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().getRoutes().isEmpty()) {
+                    Log.d("DIRECTIONS_API", "Ruta encontrada con el modo: " + modoTransporte);
+                    dibujarRutaYMostrarDetalles(response.body());
+
+                } else if (modoTransporte.equals("bicycling")) {
+                    Log.d("DIRECTIONS_API", "Ruta en bicicleta");
+                    buscarRutaAlternativa("driving");
+
+                } else {
+                    Log.d("DIRECTIONS_API", "No se encontró ninguna ruta para el modo: " + modoTransporte);
+                    Toast.makeText(MainActivity2.this, "No se pudo encontrar una ruta a pie", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<DirectionsResponse> call, @NonNull Throwable t) {
+                Toast.makeText(MainActivity2.this, "Error de red: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void dibujarRutaYMostrarDetalles(DirectionsResponse body) {
+        if (polylineRuta != null) {
+            polylineRuta.remove();
+        }
+        DirectionsResponse.Route route = body.getRoutes().get(0);
+        polylineRutaCodificada = route.getOverviewPolyline().getPoints();
+
+        if (!route.getLegs().isEmpty()) {
+            DirectionsResponse.Leg leg = route.getLegs().get(0);
+            String distancia = leg.getDistance().getText();
+            String duracion = leg.getDuration().getText();
+
+            tvDistancia.setText("Distancia: " + distancia);
+            tvDuracion.setText("Duración: " + duracion);
+            routeDetailsLayout.setVisibility(View.VISIBLE);
+        }
+
+        List<LatLng> points = decodePoly(polylineRutaCodificada);
+        if (!points.isEmpty()) {
+            PolylineOptions polylineOptions = new PolylineOptions().addAll(points).color(0xFF007BFF).width(12);
+            polylineRuta = googleMap.addPolyline(polylineOptions);
+            btnGuardarRuta.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void buscarRutaAlternativa(String modoAlternativo) {
+        String originStr = origenLatLng.latitude + "," + origenLatLng.longitude;
+        String destinationStr = destinoLatLng.latitude + "," + destinoLatLng.longitude;
+        String apiKey = getString(R.string.google_maps_key);
+
+        directionsApiService.getDirections(originStr, destinationStr, modoAlternativo, apiKey).enqueue(new Callback<DirectionsResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<DirectionsResponse> call, @NonNull Response<DirectionsResponse> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().getRoutes().isEmpty()) {
+                    Log.d("DIRECTIONS_API", "Ruta alternativa encontrada con modo: " + modoAlternativo);
+                    dibujarRutaYMostrarDetalles(response.body());
+                } else {
+                    Log.d("DIRECTIONS_API", "El reintento con modo " + modoAlternativo + " también falló.");
+                    Toast.makeText(MainActivity2.this, "No se pudo encontrar ninguna ruta alternativa", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<DirectionsResponse> call, @NonNull Throwable t) {
+                Toast.makeText(MainActivity2.this, "Error de red en el reintento: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        googleMap = map;
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            googleMap.setMyLocationEnabled(true);
+            obtenerMiUbicacion();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
     }
 
     private void configurarAutocomplete() {
@@ -150,41 +274,11 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
                 }
 
                 @Override
-                public void onError(@NonNull com.google.android.gms.common.api.Status status) {
+                public void onError(@NonNull Status status) {
                     Toast.makeText(MainActivity2.this, "Error al buscar lugar", Toast.LENGTH_SHORT).show();
                 }
             });
         }
-    }
-
-    private void buscarYDibujarRuta() {
-        if (polylineRuta != null) polylineRuta.remove();
-
-        String originStr = origenLatLng.latitude + "," + origenLatLng.longitude;
-        String destinationStr = destinoLatLng.latitude + "," + destinoLatLng.longitude;
-        String apiKey = getString(R.string.google_maps_key);
-
-        directionsApiService.getDirections(originStr, destinationStr, apiKey).enqueue(new Callback<DirectionsResponse>() {
-            @Override
-            public void onResponse(@NonNull Call<DirectionsResponse> call, @NonNull Response<DirectionsResponse> response) {
-                if (response.isSuccessful() && response.body() != null && !response.body().getRoutes().isEmpty()) {
-                    polylineRutaCodificada = response.body().getRoutes().get(0).getOverviewPolyline().getPoints();
-                    List<LatLng> points = decodePoly(polylineRutaCodificada);
-                    if (!points.isEmpty()) {
-                        PolylineOptions polylineOptions = new PolylineOptions().addAll(points).color(0xFF007BFF).width(12);
-                        polylineRuta = googleMap.addPolyline(polylineOptions);
-                        btnGuardarRuta.setVisibility(View.VISIBLE);
-                    }
-                } else {
-                    Toast.makeText(MainActivity2.this, "No se pudo encontrar una ruta.", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<DirectionsResponse> call, @NonNull Throwable t) {
-                Toast.makeText(MainActivity2.this, "Error de red: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void mostrarDialogoGuardarRuta() {
@@ -203,7 +297,7 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
                 .setPositiveButton("Guardar", (dialog, which) -> {
                     String nombreRuta = etNombreRuta.getText().toString().trim();
                     if (TextUtils.isEmpty(nombreRuta)) {
-                        Toast.makeText(this, "El nombre de la ruta es obligatorio.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "El nombre de la ruta es obligatorio", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     String descripcion = etDescripcionRuta.getText().toString().trim();
@@ -232,12 +326,13 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
 
         db.collection("rutasGuardadas").add(rutaData)
                 .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(MainActivity2.this, "Ruta guardada con éxito.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity2.this, "Ruta guardada con éxito", Toast.LENGTH_SHORT).show();
                     if (polylineRuta != null) polylineRuta.remove();
                     if (markerDestino != null) markerDestino.remove();
                     btnGuardarRuta.setVisibility(View.GONE);
+                    routeDetailsLayout.setVisibility(View.GONE);
                 })
-                .addOnFailureListener(e -> Toast.makeText(MainActivity2.this, "Error al guardar la ruta.", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(MainActivity2.this, "Error al guardar la ruta", Toast.LENGTH_SHORT).show());
     }
 
     private List<LatLng> decodePoly(String encoded) {
@@ -279,18 +374,6 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
-    @Override
-    public void onMapReady(@NonNull GoogleMap map) {
-        googleMap = map;
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            googleMap.setMyLocationEnabled(true);
-            obtenerMiUbicacion();
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-        }
-    }
-
     private void obtenerMiUbicacion() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
@@ -308,7 +391,7 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
         if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             onMapReady(googleMap);
         } else {
-            Toast.makeText(this, "Permiso de ubicación denegado.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -344,11 +427,11 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
     }
 
     @Override
-    protected void onResume() { super.onResume(); mapView.onResume(); }
+    protected void onResume() { super.onResume(); if (mapView != null) mapView.onResume(); }
     @Override
-    protected void onPause() { super.onPause(); mapView.onPause(); }
+    protected void onPause() { super.onPause(); if (mapView != null) mapView.onPause(); }
     @Override
-    protected void onDestroy() { super.onDestroy(); mapView.onDestroy(); }
+    protected void onDestroy() { super.onDestroy(); if (mapView != null) mapView.onDestroy(); }
     @Override
-    public void onLowMemory() { super.onLowMemory(); mapView.onLowMemory(); }
+    public void onLowMemory() { super.onLowMemory(); if (mapView != null) mapView.onLowMemory(); }
 }
