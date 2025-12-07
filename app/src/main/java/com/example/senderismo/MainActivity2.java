@@ -412,7 +412,7 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.item1) {
-            startActivity(new Intent(this, MainActivity3.class));
+            Toast.makeText(this, " Perfil ", Toast.LENGTH_SHORT).show();
             return true;
         } else if (id == R.id.item2) {
             startActivity(new Intent(this, MainActivity4.class));
@@ -422,6 +422,9 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
             Toast.makeText(this, "Sesión cerrada", Toast.LENGTH_SHORT).show();
             irAlLogin();
             return true;
+        } else if (id == R.id.item4) {
+        startActivity(new Intent(this, RutasGuardadasActivity.class));
+        return true;
         }
         return super.onOptionsItemSelected(item);
     }

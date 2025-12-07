@@ -20,7 +20,7 @@ public class RutasAdapter extends RecyclerView.Adapter<RutasAdapter.RutaViewHold
     @NonNull
     @Override
     public RutaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_ruta, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_ruta_guardada, parent, false);
         return new RutaViewHolder(view);
     }
 
@@ -43,6 +43,9 @@ public class RutasAdapter extends RecyclerView.Adapter<RutasAdapter.RutaViewHold
         public TextView dificultadTextView;
         public TextView descripcionTextView;
         public ImageView imagenImageView;
+       public TextView tvNombre;
+       public TextView tvDescripcion;
+       public TextView tvDificultad;
 
         public RutaViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -50,6 +53,9 @@ public class RutasAdapter extends RecyclerView.Adapter<RutasAdapter.RutaViewHold
             dificultadTextView = itemView.findViewById(R.id.textViewDificultad);
             descripcionTextView = itemView.findViewById(R.id.textViewDescripcion);
             imagenImageView = itemView.findViewById(R.id.imageViewRuta);
+            tvNombre = itemView.findViewById(R.id.tvNombreRutaItem);
+            tvDescripcion = itemView.findViewById(R.id.tvDescripcionRutaItem);
+            tvDificultad = itemView.findViewById(R.id.tvDificultadRutaItem);
         }
     }
 }
