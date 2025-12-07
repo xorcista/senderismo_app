@@ -10,13 +10,6 @@
     android:layout_marginVertical="4dp"
     android:background="#F0F0F0">
 
-    <ImageView
-        android:id="@+id/imageViewRuta"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:scaleType="centerCrop"
-        tools:srcCompat="@drawable/ruta" />
-
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"

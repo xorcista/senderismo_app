@@ -10,7 +10,7 @@ public interface DirectionsApiService {
             @Query("origin") String origin,
             @Query("destination") String destination,
             @Query("mode") String mode,
-            @Query("key") String apiKey
+            @Query("key") String apiKey,
+            @Query("language") String language
     );
 }
-    

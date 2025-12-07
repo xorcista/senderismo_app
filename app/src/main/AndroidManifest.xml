@@ -55,8 +55,6 @@
             android:name=".RutasGuardadasActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity2">
-            <!-- El parentActivityName añade una flecha "atrás" en la barra de herramientas
-                 que te devuelve a la pantalla del mapa, lo cual es buena práctica. -->
         </activity>
     </application>
 

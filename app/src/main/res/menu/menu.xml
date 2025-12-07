@@ -2,24 +2,33 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/item1"
-        android:title="Item 1"
+    <item
+        android:id="@+id/menu_perfil"
         android:icon="@drawable/perfil"
-        app:showAsAction="always" />
+        android:title="Perfil"
+        app:showAsAction="ifRoom" />
 
-    <item android:id="@+id/item2"
-        android:title="Item 2"
+    <item
+        android:id="@+id/menu_planificar_ruta"
         android:icon="@drawable/buscar"
+        android:title="Planificar Ruta"
         app:showAsAction="ifRoom" />
 
-    <item android:id="@+id/item3"
-        android:title="Item 3"
-        android:icon="@drawable/cerrar"
-        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_overflow"
+        android:icon="@drawable/puntos"
+        android:title="Más opciones"
+        app:showAsAction="always">
 
-    <item android:id="@+id/item4"
-        android:title="Mis Rutas"
-        android:icon="@drawable/ic_android_black_24dp"
-        app:showAsAction="ifRoom" />
+        <menu>
+            <item
+                android:id="@+id/menu_mis_rutas"
+                android:title="Mis Rutas" />
+
+            <item
+                android:id="@+id/menu_cerrar_sesion"
+                android:title="Cerrar Sesión" />
+        </menu>
+    </item>
 
 </menu>
