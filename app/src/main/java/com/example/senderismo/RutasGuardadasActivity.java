@@ -3,6 +3,8 @@ package com.example.senderismo;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -36,7 +38,6 @@ public class RutasGuardadasActivity extends AppCompatActivity implements RutasAd
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rutas_guardadas);
-
         toolbar = findViewById(R.id.mi_toolbar_rutas);
         toolbar.setTitle("Mis Rutas");
         setSupportActionBar(toolbar);
@@ -50,12 +51,10 @@ public class RutasGuardadasActivity extends AppCompatActivity implements RutasAd
         recyclerView = findViewById(R.id.recyclerViewRutas);
         progressBar = findViewById(R.id.progressBarRutas);
         tvNoRutas = findViewById(R.id.tvNoRutas);
-
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         listaDeRutas = new ArrayList<>();
         adapter = new RutasAdapter(listaDeRutas, this);
         recyclerView.setAdapter(adapter);
-
         cargarRutasGuardadas();
     }
 
@@ -68,11 +67,14 @@ public class RutasGuardadasActivity extends AppCompatActivity implements RutasAd
         if (currentUser == null) {
             Toast.makeText(this, "Debes iniciar sesión para ver tus rutas", Toast.LENGTH_SHORT).show();
             progressBar.setVisibility(View.GONE);
+            tvNoRutas.setVisibility(View.VISIBLE);
+            tvNoRutas.setText("Inicia sesión para ver tus rutas.");
             return;
         }
 
         db.collection("rutasGuardadas")
                 .whereEqualTo("userId", currentUser.getUid())
+                .orderBy("favorita", Query.Direction.DESCENDING)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -87,17 +89,17 @@ public class RutasGuardadasActivity extends AppCompatActivity implements RutasAd
 
                         if (listaDeRutas.isEmpty()) {
                             tvNoRutas.setVisibility(View.VISIBLE);
+                            tvNoRutas.setText("Aún no tienes rutas guardadas.");
                         } else {
                             recyclerView.setVisibility(View.VISIBLE);
                             adapter.notifyDataSetChanged();
                         }
                     } else {
                         Log.e("FIRESTORE_ERROR", "Error al cargar las rutas: ", task.getException());
-                        Toast.makeText(this, "Error al cargar las rutas.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Error al cargar las rutas. Revisa el Logcat.", Toast.LENGTH_LONG).show();
                     }
                 });
     }
-
     @Override
     public void onRutaClick(Ruta ruta) {
         Intent intent = new Intent(this, MainActivity2.class);
@@ -112,8 +114,9 @@ public class RutasGuardadasActivity extends AppCompatActivity implements RutasAd
                 .update("favorita", nuevoEstadoFavorito)
                 .addOnSuccessListener(aVoid -> {
                     ruta.setFavorita(nuevoEstadoFavorito);
-                    adapter.notifyItemChanged(position);
-                    Toast.makeText(this, nuevoEstadoFavorito ? "Ruta añadida a favoritos" : "Ruta quitada de favoritos", Toast.LENGTH_SHORT).show();
+                    listaDeRutas.sort((r1, r2) -> Boolean.compare(r2.isFavorita(), r1.isFavorita()));
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(this, nuevoEstadoFavorito ? "Añadida a favoritos" : "Quitada de favoritos", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Error al actualizar favorito", Toast.LENGTH_SHORT).show());
     }
@@ -136,6 +139,63 @@ public class RutasGuardadasActivity extends AppCompatActivity implements RutasAd
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();
+    }
+
+    @Override
+    public void onCompartirClick(Ruta ruta) {
+        String travelMode = "walking";
+        if (ruta.getTipoDeRuta() != null && ruta.getTipoDeRuta().equalsIgnoreCase("Ciclismo")) {
+            travelMode = "bicycling";
+        }
+
+        String googleMapsUrl = "https://www.google.com/maps/dir/?api=1&origin=" +
+                ruta.getOrigenLat() + "," + ruta.getOrigenLng() +
+                "&destination=" + ruta.getDestinoLat() + "," + ruta.getDestinoLng() +
+                "&travelmode=" + travelMode;
+
+        String textoCompartir = "¡Mira esta ruta que planifiqué en Senderismo App!\n\n" +
+                "Ruta: " + ruta.getNombreRuta() + "\n" +
+                "Tipo: " + ruta.getTipoDeRuta() + "\n" +
+                "Dificultad: " + ruta.getDificultad() + "\n\n" +
+                "Puedes ver la ruta en Google Maps aquí:\n" +
+                googleMapsUrl;
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Ruta de Senderismo: " + ruta.getNombreRuta());
+        shareIntent.putExtra(Intent.EXTRA_TEXT, textoCompartir);
+
+        startActivity(Intent.createChooser(shareIntent, "Compartir ruta vía"));
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.menu_perfil) {
+            startActivity(new Intent(this, MainActivity3.class));
+            return true;
+        } else if (id == R.id.menu_planificar_ruta) {
+            startActivity(new Intent(this, MainActivity2.class));
+            return true;
+        } else if (id == R.id.menu_mis_rutas) {
+            Toast.makeText(this, "Ya estás en Mis Rutas", Toast.LENGTH_SHORT).show();
+            return true;
+        } else if (id == R.id.menu_cerrar_sesion) {
+            FirebaseAuth.getInstance().signOut();
+            Intent i = new Intent(this, MainActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

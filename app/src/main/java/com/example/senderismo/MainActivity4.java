@@ -94,6 +94,33 @@ public class MainActivity4 extends AppCompatActivity implements RutasAdapter.OnR
                 .show();
     }
 
+    @Override
+    public void onCompartirClick(Ruta ruta) {
+        String travelMode = ruta.getTipoDeRuta().equalsIgnoreCase("Ciclismo") ? "bicycling" : "walking";
+        String googleMapsUrl = "https://www.google.com/maps/dir/?api=1&origin=" +
+                ruta.getOrigenLat() + "," + ruta.getOrigenLng() +
+                "&destination=" + ruta.getDestinoLat() + "," + ruta.getDestinoLng() +
+                "&travelmode=" + travelMode;
+
+        // 2. Crear el texto que se va a compartir
+        String textoCompartir = "¡Mira esta ruta que encontré en Senderismo App!\n\n" +
+                "Ruta: " + ruta.getNombreRuta() + "\n" +
+                "Tipo: " + ruta.getTipoDeRuta() + "\n" +
+                "Dificultad: " + ruta.getDificultad() + "\n\n" +
+                "Puedes verla en Google Maps aquí:\n" +
+                googleMapsUrl;
+
+        // 3. Crear un Intent para compartir
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Ruta de Senderismo: " + ruta.getNombreRuta());
+        shareIntent.putExtra(Intent.EXTRA_TEXT, textoCompartir);
+
+        // 4. Mostrar el diálogo de "Compartir con..." de Android
+        startActivity(Intent.createChooser(shareIntent, "Compartir ruta vía"));
+    }
+
+
     private void cargarRutasDesdeFirestore() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {

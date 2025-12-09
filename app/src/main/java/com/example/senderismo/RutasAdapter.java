@@ -1,14 +1,12 @@
 package com.example.senderismo;
 
 import android.graphics.Color;
-import android.view.LayoutInflater;
-import android.view.View;
+import android.view.LayoutInflater;import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
@@ -21,6 +19,7 @@ public class RutasAdapter extends RecyclerView.Adapter<RutasAdapter.RutaViewHold
         void onRutaClick(Ruta ruta);
         void onFavoritoClick(Ruta ruta, int position);
         void onEliminarClick(Ruta ruta, int position);
+        void onCompartirClick(Ruta ruta);
     }
 
     public RutasAdapter(List<Ruta> listaDeRutas, OnRutaInteractionListener listener) {
@@ -58,6 +57,7 @@ public class RutasAdapter extends RecyclerView.Adapter<RutasAdapter.RutaViewHold
         }
 
         holder.itemView.setOnClickListener(v -> listener.onRutaClick(rutaActual));
+        holder.iconoCompartir.setOnClickListener(v -> listener.onCompartirClick(rutaActual)); // <-- NUEVO LISTENER
         holder.iconoFavorito.setOnClickListener(v -> listener.onFavoritoClick(rutaActual, position));
         holder.iconoEliminar.setOnClickListener(v -> listener.onEliminarClick(rutaActual, position));
     }
@@ -67,14 +67,9 @@ public class RutasAdapter extends RecyclerView.Adapter<RutasAdapter.RutaViewHold
         return listaDeRutas.size();
     }
 
-    public void setRutas(List<Ruta> nuevasRutas) {
-        this.listaDeRutas = nuevasRutas;
-        notifyDataSetChanged();
-    }
-
     public static class RutaViewHolder extends RecyclerView.ViewHolder {
         TextView nombreTextView, dificultadTextView, tipoDeRutaTextView;
-        ImageView iconoFavorito, iconoEliminar;
+        ImageView iconoCompartir, iconoFavorito, iconoEliminar;
         RelativeLayout layoutPrincipal;
 
         public RutaViewHolder(@NonNull View itemView) {
@@ -82,6 +77,7 @@ public class RutasAdapter extends RecyclerView.Adapter<RutasAdapter.RutaViewHold
             nombreTextView = itemView.findViewById(R.id.textViewNombreRuta);
             dificultadTextView = itemView.findViewById(R.id.textViewDificultad);
             tipoDeRutaTextView = itemView.findViewById(R.id.textViewTipoDeRuta);
+            iconoCompartir = itemView.findViewById(R.id.icono_compartir);
             iconoFavorito = itemView.findViewById(R.id.icono_favorito);
             iconoEliminar = itemView.findViewById(R.id.icono_eliminar);
             layoutPrincipal = itemView.findViewById(R.id.ruta_item_layout);

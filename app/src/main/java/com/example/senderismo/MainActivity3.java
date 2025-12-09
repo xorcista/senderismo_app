@@ -1,97 +1,197 @@
 package com.example.senderismo;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.core.content.ContextCompat;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 public class MainActivity3 extends AppCompatActivity {
 
     private Toolbar toolbar;
+    private ImageView imageViewPerfil;
     private TextView textViewNombrePerfil, textViewEmailPerfil;
+    private ProgressBar progressBarPerfil;
+    private Button btnCerrarSesion, btnAtras;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private StorageReference storageReference;
+    private Uri imagenUri;
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    abrirGaleria();
+                } else {
+                    Toast.makeText(this, "Permiso denegado para acceder a la galería.", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    private final ActivityResultLauncher<Intent> pickImageLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {
+                    imagenUri = result.getData().getData();
+                    imageViewPerfil.setImageURI(imagenUri);
+                    subirImagenAFirebase();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main3);
 
-        View mainView = findViewById(R.id.main);
-        if (mainView != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
-                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-                return insets;
-            });
-        }
-
         toolbar = findViewById(R.id.mi_toolbar);
+        imageViewPerfil = findViewById(R.id.imageViewPerfil);
+        textViewNombrePerfil = findViewById(R.id.textViewNombrePerfil);
+        textViewEmailPerfil = findViewById(R.id.textViewEmailPerfil);
+        progressBarPerfil = findViewById(R.id.progressBarPerfil);
+        btnCerrarSesion = findViewById(R.id.btn_cerrar_sesion);
+        btnAtras = findViewById(R.id.btn_atras);
         toolbar.setTitle("Mi Perfil");
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
-
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
-        textViewNombrePerfil = findViewById(R.id.textViewNombrePerfil);
-        textViewEmailPerfil = findViewById(R.id.textViewEmailPerfil);
-
+        storageReference = FirebaseStorage.getInstance().getReference();
         cargarDatosUsuario();
+
+        imageViewPerfil.setOnClickListener(v -> pedirPermisoYAbriGaleria());
+        btnCerrarSesion.setOnClickListener(v -> cerrarSesion());
+        btnAtras.setOnClickListener(v -> onBackPressed());
+    }
+
+    private void pedirPermisoYAbriGaleria() {
+        String permiso = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                ? Manifest.permission.READ_MEDIA_IMAGES
+                : Manifest.permission.READ_EXTERNAL_STORAGE;
+
+        if (ContextCompat.checkSelfPermission(this, permiso) == PackageManager.PERMISSION_GRANTED) {
+            abrirGaleria();
+        } else {
+            requestPermissionLauncher.launch(permiso);
+        }
+    }
+
+    private void abrirGaleria() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        pickImageLauncher.launch(intent);
+    }
+
+    private void subirImagenAFirebase() {
+        if (imagenUri == null) return;
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "Error: No hay usuario autenticado.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        progressBarPerfil.setVisibility(View.VISIBLE);
+        final StorageReference fileRef = storageReference.child("profile_images").child(user.getUid() + ".jpg");
+
+        fileRef.putFile(imagenUri)
+                .addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                    String imageUrl = uri.toString();
+                    guardarUrlEnFirestore(imageUrl);
+                }))
+                .addOnFailureListener(e -> {
+                    progressBarPerfil.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity3.this, "Error al subir la imagen.", Toast.LENGTH_SHORT).show();
+                    Log.e("STORAGE_ERROR", "Fallo al subir archivo a Firebase Storage", e);
+                });
+    }
+
+    private void guardarUrlEnFirestore(String imageUrl) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+
+        db.collection("users").document(user.getUid())
+                .update("profileImageUrl", imageUrl)
+                .addOnSuccessListener(aVoid -> {
+                    progressBarPerfil.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity3.this, "Foto de perfil actualizada.", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    progressBarPerfil.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity3.this, "Error al guardar la URL de la imagen.", Toast.LENGTH_SHORT).show();
+                    Log.e("FIRESTORE_ERROR", "Fallo al guardar URL: ", e);
+                });
     }
 
     private void cargarDatosUsuario() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            String userId = currentUser.getUid();
-            DocumentReference docRef = db.collection("users").document(userId);
+            progressBarPerfil.setVisibility(View.VISIBLE);
+            db.collection("users").document(currentUser.getUid()).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        progressBarPerfil.setVisibility(View.GONE);
+                        if (documentSnapshot.exists()) {
+                            String nombre = documentSnapshot.getString("nombre");
+                            String apellido = documentSnapshot.getString("apellido");
+                            String email = documentSnapshot.getString("email");
+                            String imageUrl = documentSnapshot.getString("profileImageUrl");
 
-            docRef.get().addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    String nombre = documentSnapshot.getString("nombre");
-                    String apellido = documentSnapshot.getString("apellido");
-                    String email = documentSnapshot.getString("email");
+                            textViewNombrePerfil.setText(nombre + " " + apellido);
+                            textViewEmailPerfil.setText(email);
 
-                    textViewNombrePerfil.setText(nombre + " " + apellido);
-                    textViewEmailPerfil.setText(email);
-                } else {
-                    Toast.makeText(MainActivity3.this, "No se encontraron datos de perfil.", Toast.LENGTH_SHORT).show();
-                }
-            }).addOnFailureListener(e -> {
-                Toast.makeText(MainActivity3.this, "Error al cargar datos.", Toast.LENGTH_SHORT).show();
-            });
+                            if (imageUrl != null && !imageUrl.isEmpty()) {
+                                Glide.with(this)
+                                        .load(imageUrl)
+                                        .circleCrop() // Para que sea circular
+                                        .placeholder(android.R.drawable.ic_menu_myplaces)
+                                        .error(android.R.drawable.ic_menu_myplaces)
+                                        .into(imageViewPerfil);
+                            } else {
+                                imageViewPerfil.setImageResource(android.R.drawable.ic_menu_myplaces);
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        progressBarPerfil.setVisibility(View.GONE);
+                        Toast.makeText(this, "Error al cargar datos de perfil.", Toast.LENGTH_SHORT).show();
+                    });
         } else {
             irAlLogin();
         }
     }
 
-    public void cerrarSesion(View view) {
+    private void cerrarSesion() {
         mAuth.signOut();
         Toast.makeText(this, "Sesión cerrada.", Toast.LENGTH_SHORT).show();
         irAlLogin();
     }
 
     private void irAlLogin() {
-        Intent intent = new Intent(MainActivity3.this, MainActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
@@ -99,8 +199,7 @@ public class MainActivity3 extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu, menu);
+        getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
 
@@ -111,9 +210,7 @@ public class MainActivity3 extends AppCompatActivity {
         if (id == android.R.id.home) {
             onBackPressed();
             return true;
-        }
-
-        if (id == R.id.menu_perfil) {
+        } else if (id == R.id.menu_perfil) {
             Toast.makeText(this, "Ya estás en tu Perfil", Toast.LENGTH_SHORT).show();
             return true;
         } else if (id == R.id.menu_planificar_ruta) {
@@ -123,12 +220,7 @@ public class MainActivity3 extends AppCompatActivity {
             startActivity(new Intent(this, MainActivity4.class));
             return true;
         } else if (id == R.id.menu_cerrar_sesion) {
-            mAuth.signOut();
-            Toast.makeText(this, "Sesión cerrada", Toast.LENGTH_SHORT).show();
-            Intent i = new Intent(MainActivity3.this, MainActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(i);
-            finish();
+            cerrarSesion();
             return true;
         }
 
