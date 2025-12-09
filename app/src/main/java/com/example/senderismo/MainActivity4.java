@@ -102,7 +102,6 @@ public class MainActivity4 extends AppCompatActivity implements RutasAdapter.OnR
                 "&destination=" + ruta.getDestinoLat() + "," + ruta.getDestinoLng() +
                 "&travelmode=" + travelMode;
 
-        // 2. Crear el texto que se va a compartir
         String textoCompartir = "¡Mira esta ruta que encontré en Senderismo App!\n\n" +
                 "Ruta: " + ruta.getNombreRuta() + "\n" +
                 "Tipo: " + ruta.getTipoDeRuta() + "\n" +
@@ -110,13 +109,11 @@ public class MainActivity4 extends AppCompatActivity implements RutasAdapter.OnR
                 "Puedes verla en Google Maps aquí:\n" +
                 googleMapsUrl;
 
-        // 3. Crear un Intent para compartir
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Ruta de Senderismo: " + ruta.getNombreRuta());
         shareIntent.putExtra(Intent.EXTRA_TEXT, textoCompartir);
 
-        // 4. Mostrar el diálogo de "Compartir con..." de Android
         startActivity(Intent.createChooser(shareIntent, "Compartir ruta vía"));
     }
 

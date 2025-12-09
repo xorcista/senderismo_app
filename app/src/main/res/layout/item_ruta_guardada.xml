@@ -51,7 +51,6 @@
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true">
 
-        <!-- ¡NUEVO ICONO DE COMPARTIR! -->
         <ImageView
             android:id="@+id/icono_compartir"
             android:layout_width="32dp"
