@@ -108,6 +108,33 @@ public class RutasGuardadasActivity extends AppCompatActivity implements RutasAd
     }
 
     @Override
+    public void onCompartirClick(Ruta ruta) {
+        String travelMode = "walking";
+        if (ruta.getTipoDeRuta() != null && ruta.getTipoDeRuta().equalsIgnoreCase("Ciclismo")) {
+            travelMode = "bicycling";
+        }
+
+        String googleMapsUrl = "https://www.google.com/maps/dir/?api=1&origin=" +
+                ruta.getOrigenLat() + "," + ruta.getOrigenLng() +
+                "&destination=" + ruta.getDestinoLat() + "," + ruta.getDestinoLng() +
+                "&travelmode=" + travelMode;
+
+        String textoCompartir = "¡Mira esta ruta que planifiqué en Senderismo App!\n\n" +
+                "Ruta: " + ruta.getNombreRuta() + "\n" +
+                "Tipo: " + ruta.getTipoDeRuta() + "\n" +
+                "Dificultad: " + ruta.getDificultad() + "\n\n" +
+                "Puedes ver la ruta en Google Maps aquí:\n" +
+                googleMapsUrl;
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Ruta de Senderismo: " + ruta.getNombreRuta());
+        shareIntent.putExtra(Intent.EXTRA_TEXT, textoCompartir);
+
+        startActivity(Intent.createChooser(shareIntent, "Compartir ruta vía"));
+    }
+
+    @Override
     public void onFavoritoClick(Ruta ruta, int position) {
         boolean nuevoEstadoFavorito = !ruta.isFavorita();
         db.collection("rutasGuardadas").document(ruta.getDocumentId())
@@ -141,32 +168,7 @@ public class RutasGuardadasActivity extends AppCompatActivity implements RutasAd
                 .show();
     }
 
-    @Override
-    public void onCompartirClick(Ruta ruta) {
-        String travelMode = "walking";
-        if (ruta.getTipoDeRuta() != null && ruta.getTipoDeRuta().equalsIgnoreCase("Ciclismo")) {
-            travelMode = "bicycling";
-        }
 
-        String googleMapsUrl = "https://www.google.com/maps/dir/?api=1&origin=" +
-                ruta.getOrigenLat() + "," + ruta.getOrigenLng() +
-                "&destination=" + ruta.getDestinoLat() + "," + ruta.getDestinoLng() +
-                "&travelmode=" + travelMode;
-
-        String textoCompartir = "¡Mira esta ruta que planifiqué en Senderismo App!\n\n" +
-                "Ruta: " + ruta.getNombreRuta() + "\n" +
-                "Tipo: " + ruta.getTipoDeRuta() + "\n" +
-                "Dificultad: " + ruta.getDificultad() + "\n\n" +
-                "Puedes ver la ruta en Google Maps aquí:\n" +
-                googleMapsUrl;
-
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Ruta de Senderismo: " + ruta.getNombreRuta());
-        shareIntent.putExtra(Intent.EXTRA_TEXT, textoCompartir);
-
-        startActivity(Intent.createChooser(shareIntent, "Compartir ruta vía"));
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
