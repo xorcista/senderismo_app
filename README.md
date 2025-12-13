@@ -4,11 +4,20 @@
 
 <p align="left">Senderismo App es una aplicación para encontrar rutas de senderismo o ciclismo, conocer distancias, dificultad y más.</p>
 
+<p align="left">
+  Descargar APK de prueba: <a target="_blank" href="https://dampudia.com/senderismo-app.apk"><img src="https://dampudia.com/get_apk.png" width="100" alt="app_1"  /></a>
+</p>
+
 ###
 <p align="left">
-<img src="https://dampudia.com/app_1.png" width="270" alt="app_1"  />
-<img src="https://dampudia.com/app_2.png" width="270" alt="app_2"  />
-<img src="https://dampudia.com/app_3.png" width="270" alt="app_3"  />
+<img src="https://dampudia.com/senderismoapp_1.png" width="270" alt="app_1"  />
+<img src="https://dampudia.com/senderismoapp_2.png" width="270" alt="app_2"  />
+<img src="https://dampudia.com/senderismoapp_3.png" width="270" alt="app_3"  />
+</p>
+<p align="left">
+<img src="https://dampudia.com/senderismoapp_4.png" width="270" alt="app_1"  />
+<img src="https://dampudia.com/senderismoapp_5.png" width="270" alt="app_2"  />
+<img src="https://dampudia.com/senderismoapp_6.png" width="270" alt="app_3"  />
 </p>
 
 <h2 align="left">Integrantes</h2>
